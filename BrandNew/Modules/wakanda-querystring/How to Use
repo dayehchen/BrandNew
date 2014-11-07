@@ -1,0 +1,11 @@
+// How to Use
+//
+// This is can be used both server side and client side, but it is probably more useful on the server side
+// in combination with XMLHttpRequest() calls in Wakanda.
+//
+// Place the querystring.js file in the Modules directory (at the same level as the WebFolder) in your Wakanda project.
+// Usage Example:
+
+var querystring = require('querystring');
+
+var request_data = querystring.stringify(data);
