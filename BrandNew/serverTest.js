@@ -1,11 +1,11 @@
 ﻿
-ds.User.all()
+//ds.User.all()
 
-//var dave = new ds.User({
-//	email: "dave@wakanda.org",
-//	password: "dave1dave",
-//	fullName: "David Robbins",
-//	role: "Employee"
-//});
+var dayeh = new ds.User({
+	email: "dayeh@motivinc.com",
+	password: "Nov13$apple",
+	fullName: "Dayeh Chen",
+	role: "Employee"
+});
 
-//dave.save()
+dayeh.save()
