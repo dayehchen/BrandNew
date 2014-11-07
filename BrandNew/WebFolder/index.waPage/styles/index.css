@@ -3,12 +3,23 @@
 	Changes to this CSS file might be lost when it is regenerated.
 */
 
+#dataGrid1 {
+	 z-index: 2;
+	 width: 665px;
+	 height: 302px;
+	 top: 123px;
+	 left: 39px;
+	
+	 position: absolute;
+	 
+}
+
 #login1 {
 	 z-index: 1;
-	 width: 185px;
+	 width: 345px;
 	 height: 80px;
-	 top: 47px;
-	 left: 122px;
+	 top: 19px;
+	 left: 362px;
 	
 	 position: absolute;
 	 
