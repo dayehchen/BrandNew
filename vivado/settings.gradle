@@ -1,0 +1,29 @@
+// Copyright (c) 2019, Xilinx, Inc.
+
+pluginManagement {
+    //This allows us to use the plugins published to the internal repos
+    resolutionStrategy {
+        eachPlugin {
+            logger.debug("Resolving plugin '{}' namespace is: {}", requested.id, requested.id.namespace)
+            if (requested.id.namespace == 'com.xilinx') {
+                String name = requested.id.toString().replaceFirst("^${requested.id.namespace}\\.(.*)", '$1');
+                logger.debug("   ... name was calculated as '{}'", name)
+                useModule("${requested.id.namespace}:${name}:${requested.version}")
+            }
+        }
+    }
+
+    // To resolve plugin dependencies...
+    repositories {
+        maven {
+          url = 'http://artifactory/artifactory/plugins-release'
+        }
+        //maven {
+        //    url = uri(System.getProperty('xilinxBuildDir', '/scratch/xilinx_build_dir'))
+        //}
+        gradlePluginPortal()
+        jcenter()
+    }
+}
+
+rootProject.name = 'vivado'

@@ -1,0 +1,80 @@
+// Copyright (c) 2019, Xilinx, Inc.
+
+plugins {
+    id 'maven-publish'
+    id "com.jfrog.artifactory" version "4.10.0" // Allow Jenkins to inject credentials, as well as control the repo
+    id 'com.xilinx.infra-core' version "2020.1.0_0.0.1.2758718"
+}
+
+def srcDir = 'src'
+def prepDir = 'prep'
+def currentDir = System.getProperty("user.dir")
+def hierdesignDir = "hierdesign"
+def release = '2020.1.0'
+def cln_wm = sourceVersion.replace("@", "")
+group = 'com.xilinx'
+version = "${release}" + "." + cln_wm
+def names = []
+def component_nfs_dir = "/proj/rdi/staff/abalasa/nobkup2/component_pkgs/${rootProject.name}"
+
+// Generate list of files
+task generateFileList () {
+  doLast {
+    def dirNames = ["src", "hierdesign", "rdi", ".rdi.cfg"]
+    dirNames.each {
+      fileTree(dir: it).visit { FileVisitDetails details ->
+        if (details.file.isFile()) {
+          names << details.file.path.replace(currentDir, "")
+        }
+      }
+    }
+  }
+}
+
+task doBuild (type: Exec) {
+    doFirst {
+      mkdir "${buildDir}"
+    }
+    workingDir "${srcDir}"  
+    commandLine 'rdi', 'build', 'releasedirs=g2,installer,vivado,labtools,hsi,updatemem,vorpal,vorplex,webtalk,fourier,vitis,hwserver,sdnet,cardano,bootgen', '--platforms', 'all', '--refresh-interval', '20', '--run-local-limit', '10', 'releasedirs=vivado', 'rdi_autodep=no', 'use_ccache=yes', 'java_obfuscate=yes'
+}
+
+task ultraclean(type: Delete) {
+    delete buildDir, "${prepDir}"
+}
+generateManifest.dependsOn(generateFileList)
+
+infraCore {
+    // e.g. HEAD, 2019.2, 2020.1
+    branch.set(project.branch)
+    def calendar = Calendar.getInstance()
+    def dateAndTime = calendar.format("MMdd_HHmm")
+    buildName.set(dateAndTime)
+    artifactNfsLocation.set(component_nfs_dir)
+//    remotePublishUrl.set("http://xsjengvm210121:8081/artifactory")
+    artifactCommitId.set(cln_wm)
+    artifactCustom.put('ListofFiles', names) 
+}
+
+def myCopyOrMove = { String source, String dest, List<String> filelist, String mode ->
+  copyOrMove(source, dest, filelist, mode)
+}
+
+task copyFiles() {
+  doLast {
+    def jsonFile = file("${buildDir}/toArchive/manifest.json")
+    Map parsedJson = null
+    parsedJson = new JsonSlurper().parseText(jsonFile.text) as Map
+    def componentName = "${rootProject.name}"
+    myCopyOrMove(currentDir, component_nfs_dir, parsedJson."$componentName".custom.ListofFiles, "copy")
+  }
+}
+
+publishing {
+    publications {
+        manifest(MavenPublication) {
+            artifact source: packageManifest, extension: 'zip'
+            pom.packaging 'zip'
+        }
+   }
+}

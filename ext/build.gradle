@@ -1,0 +1,206 @@
+// Copyright (c) 2019, Xilinx, Inc.
+import java.nio.file.Files
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'maven-publish'
+    id "com.jfrog.artifactory" version "4.10.0" // Allow Jenkins to inject credentials, as well as control the repo
+    id 'com.xilinx.infra-core' version "2020.1.0_0.0.1.2758718"
+
+}
+
+def srcDir = 'src'
+def prepDir = 'prep'
+def currentDir = System.getProperty("user.dir")
+def hierdesignDir = "hierdesign"
+def regressionDir = "regression_data"
+def release = '2020.1.0'
+def cln_wm = sourceVersion.replace("@", "")
+group = 'com.xilinx'
+version = "${release}" + "." + cln_wm
+def out_split = []
+def component_nfs_dir = "/proj/rdi/staff/abalasa/nobkup2/component_pkgs/${rootProject.name}"
+
+// Generate list of files
+task generateFileList () {
+  doLast {
+    def dirNames = ["src", "build", "prep"]
+    //def dirNames = ["."]
+    dirNames.each {
+      fileTree(dir: it).visit { FileVisitDetails details ->
+        println details
+        if (Files.isSymbolicLink(details.file.path)){
+          names << details.file.path.replace(currentDir, "")  
+        } else if (details.file.isFile()) {
+          names << details.file.path.replace(currentDir, "")
+        }
+      }
+    }
+    print names
+  }
+}
+
+task genFileListBefore () {
+   doLast{
+     delete beforeList 
+     delete beforeListSorted
+     exec {
+       workingDir "${currentDir}"
+       commandLine 'sh', 'filelist_gen.sh', "${rootProject.name}", beforeList, beforeListSorted
+     }
+   }
+}
+
+task genFileListAfter () {
+  doLast{
+    delete afterList
+    delete afterListSorted
+    exec {
+      workingDir "${currentDir}"
+      commandLine 'sh', 'filelist_gen.sh', "${rootProject.name}", afterList, afterListSorted
+    }
+  }
+}
+
+def getdiffList = { ->
+    def hashStdOut = new ByteArrayOutputStream()
+    exec {
+    commandLine 'comm', '-12', afterListSorted, beforeListSorted
+        standardOutput = hashStdOut
+    }
+    def out = hashStdOut.toString()
+    return out 
+}
+
+task runDiffFunction() {
+  doLast{
+   out_split = getdiffList().tokenize('\n')
+   def json = groovy.json.JsonOutput.toJson(out_split)
+   infraCore.artifactCustom.put('ListofFiles', "${json}")
+  }
+}
+generateManifest.dependsOn(runDiffFunction)
+
+def myCopyOrMove = { String source, String dest, List<String> filelist, String mode ->
+  copyOrMove(source, dest, filelist, mode)
+}
+
+task copyFiles() {
+  doLast {
+    def jsonFile = file("${buildDir}/toArchive/manifest.json")
+    Map parsedJson = null
+    parsedJson = new JsonSlurper().parseText(jsonFile.text) as Map
+    def componentName = "${rootProject.name}"
+    myCopyOrMove(currentDir, component_nfs_dir, parsedJson."$componentName".custom.ListofFiles, "copy")
+  }
+}
+
+task doBuild (type: Exec) {
+    doFirst {
+      mkdir "${buildDir}"
+      environment "ENVROOT", "${currentDir}/hierdesign"
+      commandLine 'source', '${ENVROOT}/g_cshrc'
+      def rdiData = System.getenv('RDI_DATA')
+      if (!rdiData) {
+          println "Setting RDI_DATA env variable to: ${currentDir}/rdi_data"
+          environment "RDI_DATA", "${currentDir}/rdi_data"
+      }
+      workingDir "${srcDir}"
+      commandLine 'rdi', 'build', 'releasedirs=g2,installer,vivado,labtools,hsi,updatemem,vorpal,vorplex,webtalk,fourier,vitis,hwserver,sdnet,cardano,bootgen', '--platforms', 'all', '--refresh-interval', '20', '--run-local-limit', '10', 'rdi_autodep=no', 'use_ccache=yes', 'java_obfuscate=yes'
+    }
+}
+
+apply from: 'infra-sw.gradle'
+
+infraCore {
+    // e.g. HEAD, 2019.2, 2020.1
+    branch.set(project.branch)
+    def calendar = Calendar.getInstance()
+    def dateAndTime = calendar.format("MMdd_HHmm")
+    buildName.set(dateAndTime)
+    artifactNfsLocation.set(component_nfs_dir)
+//    remotePublishUrl.set("http://xsjengvm210121:8081/artifactory")
+    artifactCommitId.set(cln_wm)
+}
+
+def myCopyOrMove = { String source, String dest, List<String> filelist, String mode ->
+  copyOrMove(source, dest, filelist, mode)
+}
+
+task copyFiles() {
+  doLast {
+    def jsonFile = file("${buildDir}/toArchive/manifest.json")
+    Map parsedJson = null
+    parsedJson = new JsonSlurper().parseText(jsonFile.text) as Map
+    def componentName = "${rootProject.name}"
+    myCopyOrMove(currentDir, component_nfs_dir, parsedJson."$componentName".custom.ListofFiles, "copy")
+  }
+}
+
+dependencies {
+    //assert (componentDefinition != null)
+    for (String coordinate : componentDefinition.getArtifactoryCoordinates("Build", "doBuild")) {
+       logger.info "Artifactory coordinate added: '${coordinate}@zip'"
+       xilinxImplementation ( "${coordinate}@zip" ) {
+           transitive = true
+       }
+   }
+}
+
+task ultraclean(type: Delete) {
+    delete buildDir, "${prepDir}"
+}
+
+task doVivadobuild (type: Exec) {
+  doFirst {
+    mkdir "${buildDir}"
+    environment "ENVROOT", "${currentDir}/hierdesign"
+    commandLine 'source', '${ENVROOT}/g_cshrc'
+    def rdiData = System.getenv('RDI_DATA')
+    if (!rdiData) {
+        println "Setting RDI_DATA env variable to: ${currentDir}/rdi_data"
+        environment "RDI_DATA", "${currentDir}/rdi_data"
+    }
+   workingDir "${srcDir}"
+   commandLine 'rdi', 'build', '--platforms', 'all', '--refresh-interval', '20', '--run-local-limit', '10', 'releasedirs=vivado', 'rdi_autodep=no', 'use_ccache=yes', 'java_obfuscate=yes'
+  }
+}
+
+task runVivadoregressions (type: Exec) {
+  mkdir "${regressionDir}"
+  workingDir "${regressionDir}"
+  commandLine 'rdi', 'regression', '--results-path', '--platforms', 'lnx64', '--tql', 'FROM /proj/rdi/wall1/workspaces/mwall1/sub/HEAD/regression/products/vivado/precommit WHERE level <= 1;'
+}
+
+def myCopyOrMove = { String source, String dest, List<String> filelist, String mode ->
+  copyOrMove(source, dest, filelist, mode)
+}
+
+task copyFiles() {
+  doLast {
+    def jsonFile = file("${buildDir}/toArchive/manifest.json")
+    Map parsedJson = null
+    parsedJson = new JsonSlurper().parseText(jsonFile.text) as Map
+    def componentName = "${rootProject.name}"
+    myCopyOrMove(currentDir, "/proj/rdi/staff/abalasa/nobkup2/component_pkgs/${rootProject.name}", parsedJson."$componentName".custom.ListofFiles, "copy")
+  }
+}
+
+publishing {
+  publications {
+    manifest(MavenPublication) {
+      artifact source: packageManifest, extension: 'zip'
+      pom.packaging 'zip'
+      pom.withXml {
+        def dependenciesNode = asNode().appendNode('dependencies')
+        for (String coordinate : componentDefinition.getArtifactoryCoordinates("Build", "doBuild")) {
+          def dependencyNode = dependenciesNode.appendNode('dependency')
+          dependencyNode.appendNode('groupId', coordinate.split(":")[0])
+          dependencyNode.appendNode('artifactId', coordinate.split(":")[1])
+          dependencyNode.appendNode('version', coordinate.split(":")[2])
+          dependencyNode.appendNode('scope', 'runtime')
+          }
+        }
+      }
+   }
+}

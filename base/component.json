@@ -1,0 +1,64 @@
+{
+	"enabled": "True",
+	"name": "sw/${BRANCH}/base",
+	"macros": {
+		"P4_ROOT": "//Rodin",
+		"SWBASE_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw/base",
+		"SW_SOURCE": "HEAD"
+	},
+	"actions": [{
+			"type": "Workspace",
+			"name": "Sync_Workspace",
+			"targets": [{
+				"name": "sync",
+				"mandatory": "True",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+							"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+							"+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+							"+${P4_ROOT}/${SW_SOURCE}/.rdi.cfg $(WORKSPACE)/.rdi.cfg",
+        					"+${P4_ROOT}/${SW_SOURCE}/hierdesign/... $(WORKSPACE)/hierdesign/...",
+        					"+${P4_ROOT}/${SW_SOURCE}/rdi/... $(WORKSPACE)/rdi/...",
+        					"+${P4_ROOT}/${SW_SOURCE}/src/* $(WORKSPACE)/src/*",
+        					"+${P4_ROOT}/${SW_SOURCE}/src/products/* $(WORKSPACE)/src/products/*"
+						]
+					}
+				}
+			}]
+		},
+	    {
+			"type": "Gradle",
+			"name": "Artifactory_publish",
+			"targets": [{
+					"name": "artifactoryPublish -PsourceVersion=${sourceVersion} -Prevision=release",
+					"dependencies": {
+						"source": {
+							"type": "Perforce",
+							"server": "${PERFORCE_XCO.server}",
+							"view": [
+								"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+								"+${P4_ROOT}/${SW_SOURCE}/.rdi.cfg $(WORKSPACE)/.rdi.cfg",
+        						"+${P4_ROOT}/${SW_SOURCE}/hierdesign/... $(WORKSPACE)/hierdesign/...",
+        						"+${P4_ROOT}/${SW_SOURCE}/rdi/... $(WORKSPACE)/rdi/...",
+        						"+${P4_ROOT}/${SW_SOURCE}/src/* $(WORKSPACE)/src/*",
+        						"+${P4_ROOT}/${SW_SOURCE}/src/products/* $(WORKSPACE)/src/products/*"
+							]
+						}
+					}
+				}
+			]
+	    },
+	    {
+	      "type": "Gradle",
+	      "name": "Copy_files_to_nfs",
+	      "targets": [
+	        {
+	          "name": "copyFiles"
+	        }
+	      ]
+	    }
+	]
+}

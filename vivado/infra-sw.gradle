@@ -1,0 +1,327 @@
+// Copyright (c) 2019, Xilinx, Inc.
+
+import groovy.json.JsonSlurper
+import java.nio.file.LinkOption
+import java.nio.file.Files
+import java.util.concurrent.Executors
+import java.util.concurrent.Callable
+import java.util.concurrent.Future
+
+def allowedThreads = 10
+if (project.hasProperty('allowedThreads')) {
+    allowedThreads = project.allowedThreads.toInteger()
+}
+
+if (gradle.gradleHomeDir.toString().contains('?')) {
+    logger.warn("The Gradle home (${gradle.gradleHomeDir}) contains a '?' - this means Java is not able to calculate the user home (\$HOME is not part of this calculation). Sometimes this is caused by libraries ike LDAP not being compatible with the the version calling, perhaps try setting JAVA_HOME to /tools/batonroot/rodin/devkits/lnx64/jdk1.8.0_144/")
+}
+
+// TODO: Where should the component root point to? Currently assuming CWD
+def componentRoot = System.getProperty("user.dir")
+
+
+task pullDependencies(dependsOn: ['pullNewDependencies']) {
+    description 'Pull in the identified components'
+    outputs.upToDateWhen { false }
+}
+
+task scrubOldDependencies(dependsOn: ['extractManifest']) {
+    description 'Remove unwanted files from previous dependency pull'
+    outputs.upToDateWhen { false }
+    doFirst {
+        fileTree(infraCore.manifestExtractDir.get()).visit { FileVisitDetails details ->
+            if (details.file.path.endsWith('.remove')) {
+                def jsonFile = file(details.file.path)
+                println "Reading old component manifest: " + jsonFile
+                Map parsedJson = null
+                parsedJson = new JsonSlurper().parseText(jsonFile.text) as Map
+                def componentName = parsedJson.keySet().toArray()[0]
+                def oldCL = parsedJson."$componentName".commitId
+                def newJsonFile = file(details.file.path.substring(0, details.file.path.length() - 7))
+                println "Reading new component manifest: " + newJsonFile
+                Map parsedNewJson = null
+                parsedNewJson = new JsonSlurper().parseText(newJsonFile.text) as Map
+                println "Processing differences between manifests"
+                def newCL = parsedNewJson."$componentName".commitId
+                def common = parsedJson."$componentName".custom.ListofFiles.intersect(parsedNewJson."$componentName".custom.ListofFiles)
+                parsedJson."$componentName".custom.ListofFiles.removeAll(new HashSet<>(common))
+                // TODO: Fetch list of files covered by component template for CL oldCL
+                def oldSrcFiles = []
+                // TODO: Fetch list of files covered by component template for CL newCL
+                def newSrcFiles = []
+                def commonSrcFiles = oldSrcFiles.intersect(newSrcFiles)
+                oldSrcFiles.removeAll(new HashSet<>(commonSrcFiles))
+                def totalOldFiles = parsedJson."$componentName".custom.ListofFiles + oldSrcFiles
+                // TODO: Remove empty folders
+                for (String entry : totalOldFiles) {
+                    def fullPath = componentRoot + '/' + entry
+                    println "  Removing: " + fullPath
+                    delete {
+                      delete fullPath
+                    }
+                }
+                delete {
+                    println "Removing old manifest"
+                    delete jsonFile
+                }
+                parsedJson = null
+                parsedNewJson = null
+            }
+        }
+        println "Incremental cleanup done"
+    }
+}
+
+def pullComponentFile = { String sourceRoot, String destinationRoot, String entry, String linkCopyMove = "copy" ->
+    def copyIt = true
+    def linkIt = false
+    def destination = new File(destinationRoot + '/' + entry)
+    def source = new File(sourceRoot + '/' + entry)
+    // Error on copy fail
+    if (!Files.exists(source.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+        throw new GradleException('Source file ' + source + ' not found')
+    }
+    def destinationDir = destination.toString().lastIndexOf('/').with {it != -1 ? destination.toString()[0..<it] : ''}
+    mkdir destinationDir
+    // Move file is requested
+    if (linkCopyMove == "move") {
+        ant.move file: source, 
+                 tofile: destination
+        return
+    }
+    // Check if copy is necessary
+    if (Files.exists(destination.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+        if (source.lastModified() == destination.lastModified() && source.length() == destination.length()) {
+            copyIt = false
+        }
+        else if (!Files.isSymbolicLink(destination.toPath())) project.exec {
+          commandLine('chmod', '+w', destination.toString())
+        }
+    }
+    // Require link if requested
+    if (linkCopyMove == "link") {
+        linkIt = true
+    }
+    // Require link if origninally linked
+    if (Files.isSymbolicLink(source.toPath())) {
+        linkIt = true
+        if (Files.exists(destination.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+            if (Files.readSymbolicLink(source.toPath()) == Files.readSymbolicLink(destination.toPath())) {
+                linkIt = false
+                copyIt = false
+            }
+        }
+    }
+    // Link file if required
+    if (linkIt) {
+        def sourcePath = source.toPath()
+        if (Files.isSymbolicLink(sourcePath)) {
+            sourcePath = Files.readSymbolicLink(source.toPath())
+        }
+        println "  Linking " + sourcePath + " to " + destination.toPath()
+        exec {
+            executable 'ln'
+            args '-sf', sourcePath.toString(), destination.toString()
+        }
+        copyIt = false
+    }
+    // Copy file if required
+    if (copyIt) {
+        def parent = entry.lastIndexOf('/').with {it != -1 ? entry[0..<it] : ''}
+        println "  Copy " + entry + " from " + sourceRoot + " to " + parent
+        def newname = entry.replaceAll(':', '@@')
+        def renamed = false
+        if (newname != entry) {
+            renamed = true
+        }
+        copy {
+            from sourceRoot + '/' + entry
+            into destinationRoot + '/' + parent
+            rename { String filename ->
+                if (renamed) {
+                    println "Renaming: " + filename
+                    def replacement = filename.replaceAll(':', '@@')
+                    return replacement
+                }
+                else return filename
+            }
+        }
+        if (renamed) {
+            println "Fixing Renamed: " + newname
+            ant.move file: destinationRoot + '/' + newname, 
+                     tofile: destinationRoot + '/' + entry
+        }
+        destination.setLastModified(source.lastModified())
+    }
+}
+
+ext.copyOrMove = { String sourceRoot, String destinationRoot, List<String> listOfFiles, String linkCopyMove = "copy" ->
+    // Speed up by running in parallel
+    def pool = Executors.newFixedThreadPool(allowedThreads)
+    try {
+        List<Future> tasks = listOfFiles.collect { entry->
+            pool.submit({->
+            pullComponentFile sourceRoot, destinationRoot, entry, linkCopyMove } as Callable);
+        }
+        Collection results = tasks.each{it.get()}
+    } finally {
+        pool.shutdown()
+    }
+}
+
+def generator = { int n ->
+  String alphabet = (('A'..'Z')+('a'..'z')+('0'..'9')).join()
+  new Random().with {
+    (1..n).collect {alphabet[nextInt(alphabet.length())]}.join()
+  }
+}
+
+def createP4Client = { String branchPath ->
+    def clientName = new ByteArrayOutputStream()
+    exec {
+        commandLine 'sh', '-c', 'p4 client -o | grep Client: | grep -v "^#" | awk \'{print $2}\''
+        standardOutput = clientName
+    }
+    clientName = clientName.toString().trim() + '_component_management'
+    def clientView = '\t//Rodin/'+branchPath+'/... //'+clientName+'/...\n'
+    if (project.hasProperty('noDataSync')) {
+      clientView = clientView + '\t-//Rodin/'+branchPath+'/data/... //'+clientName+'/data/...\n'
+    }
+    if (project.hasProperty('noRegressionSync')) {
+      clientView = clientView + '\t-//Rodin/'+branchPath+'/regression/... //'+clientName+'/regression/...\n'
+    }
+    def cmd = (String[]) [
+        'sh',
+        '-c',
+        'echo "Client: '+clientName+'\nOwner: '+System.getenv()['USER']+'\nRoot: '+componentRoot+'\nOptions: noallwrite clobber nocompress unlocked modtime rmdir\nSubmitOptions: revertunchanged\nLineEnd: unix\nView:\n'+clientView+'" | p4 client -i'
+    ]
+    exec {
+        commandLine cmd
+    }
+    return clientName
+}
+
+def syncP4Component = { String branch, String clientName, String componentName, String changelist ->
+    def labelList = new ByteArrayOutputStream()
+    exec {
+        commandLine 'p4', 'clients'
+        standardOutput = labelList
+    }
+    if (labelList.toString().contains(' RDI_'+branch+'_'+componentName+'_component_template ')) {
+        def labelName = generator(10)
+        def views = new ByteArrayOutputStream()
+        def cmd = (String[]) [
+            'sh',
+            '-c',
+            'p4 client -o RDI_'+branch+'_'+componentName+'_component_template | awk \'{if(vmatch==1) vmatch=2; if(index($0,"View:")==1) vmatch=1 ; if (vmatch==2) print $0}\' | cut -f 1 -d" "'
+        ]
+        exec {
+            commandLine cmd
+            standardOutput = views
+        }
+        // Create Label from component template view and newCL
+        cmd = (String[]) [
+            'sh',
+            '-c',
+            'echo "Label: '+labelName+'\nDescription: Automatic label generated for '+System.getenv()['USER']+'\nOwner: '+System.getenv()['USER']+'\nOptions: unlocked noautoreload\nRevision: @'+changelist+'\nView:\n'+views+'" | p4 label -i'
+        ]
+        exec {
+            commandLine cmd
+        }
+        // Sync --parallel against label
+        exec {
+            commandLine "p4", "sync", "--parallel=threads="+allowedThreads, "@"+labelName+",@"+labelName
+            environment 'P4CLIENT', clientName
+            environment 'P4CONFIG', '.nothing'
+        }
+        // Delete old label
+        exec {
+            commandLine "p4", "label", "-d", labelName
+        }
+    }
+}
+
+task pullNewDependencies(dependsOn: ['scrubOldDependencies']) {
+    description 'Pull in new/updated files from specified dependencies'
+    outputs.upToDateWhen { false }
+    doLast {
+        // TODO: Get the correct branch
+        def branch = 'HEAD'
+        def branchPath = branch
+        if (branchPath != 'HEAD') {
+            branchPath = 'REL/' + branchPath
+        }
+        def clientName = ""
+        if (!project.hasProperty('noP4Sync')) {
+            clientName = createP4Client(branchPath)
+        }
+        fileTree(infraCore.manifestExtractDir.get()).visit { FileVisitDetails details ->
+            if (details.file.path.endsWith('json')) {
+                println "Processing: " + details.file
+                def jsonFile = file(details.file.path)
+                Map parsedJson = null
+                parsedJson = new JsonSlurper().parseText(jsonFile.text) as Map
+                def componentName = parsedJson.keySet().toArray()[0]
+                def newCL = parsedJson."$componentName".commitId
+                if (!project.hasProperty('noP4Sync')) {
+                    syncP4Component(branch, clientName, componentName, newCL)
+                }
+                def linkCopyMove = "copy"
+                if (project.hasProperty('useSymLinks')) {
+                    linkCopyMove = "link"
+                }
+                copyOrMove(parsedJson."$componentName".nfsLocation, componentRoot, parsedJson."$componentName".custom.ListofFiles, linkCopyMove)
+                parsedJson = null
+            }
+        }
+        println "Sync done"
+    }
+}
+
+task extractSWManifest {
+    outputs.upToDateWhen { false }
+    doFirst {
+        configurations.xilinxImplementation.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            println "Looking for old resolved artifact in " + infraCore.manifestExtractDir.dir(artifact.name).get() + ": " + artifact.name
+            try {
+                ant.move file: "" + infraCore.manifestExtractDir.dir(artifact.name).get() + '/manifest.json', 
+                         tofile: "" + infraCore.manifestExtractDir.dir(artifact.name).get() + '/manifest.json.remove'
+                println "Saving old manifest for diff processing: " + infraCore.manifestExtractDir.dir(artifact.name).get() + '/manifest.json'
+            } catch(Exception e) { println e }
+        }
+    }
+}
+
+extractManifest.dependsOn(extractSWManifest)
+extractManifest.outputs.upToDateWhen { false }
+
+// Todo: Cleanup empty folders
+task clean(type: Delete) {
+    doFirst {
+        fileTree(infraCore.manifestExtractDir.get()).visit { FileVisitDetails details ->
+            if (details.file.path.endsWith('.json')) {
+                def jsonFile = file(details.file.path)
+                println "Reading component manifest: " + jsonFile
+                Map parsedJson = null
+                parsedJson = new JsonSlurper().parseText(jsonFile.text) as Map
+                def componentName = parsedJson.keySet().toArray()[0]
+                // TODO: Remove empty folders
+                for (String entry : parsedJson."$componentName".custom.ListofFiles) {
+                    def fullPath = componentRoot + '/' + entry
+                    println "  Removing: " + fullPath
+                    delete {
+                      delete fullPath
+                    }
+                }
+                println "Removing manifest" + jsonFile
+                delete {
+                    delete jsonFile
+                }
+            }
+        }
+        println "Cleanup done"
+    }
+    doLast {
+        delete buildDir
+    }
+}

@@ -1,0 +1,124 @@
+{
+	"enabled": "True",
+	"name": "sw/${BRANCH}/vitis",
+	"macros": {
+		"P4_ROOT": "//Rodin",
+		"SWVITIS_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw/vitis",
+		"SW_SOURCE": "HEAD",
+		"BRANCH": "2020.1"
+	},
+	"actions": [{
+			"type": "Workspace",
+			"name": "Sync_Workspace",
+			"targets": [{
+				"name": "sync",
+				"mandatory": "True",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+					        "//Rodin/${SWVITIS_GRADLE}/* $(WORKSPACE)/*",
+					        "+//Rodin/${SWVITIS_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/frank/... $(WORKSPACE)/src/products/frank/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/hsi/... $(WORKSPACE)/src/products/hsi/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/products/sdk/... $(WORKSPACE)/src/products/sdk/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/products/sdkide/... $(WORKSPACE)/src/products/sdkide/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/products/sdx/... $(WORKSPACE)/src/products/sdx/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/products/vitis/... $(WORKSPACE)/src/products/vitis/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/products/vitis_hls/... $(WORKSPACE)/src/products/vitis_hls/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/products/xsct/... $(WORKSPACE)/src/products/xsct/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/shared/hls/... $(WORKSPACE)/src/shared/hls/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/shared/microscout/... $(WORKSPACE)/src/shared/microscout/...",
+						"${P4_ROOT}/${SW_SOURCE}/src/shared/sdk/... $(WORKSPACE)/src/shared/sdk/..."
+						]
+					}
+				}
+			}]
+		},
+{
+      "type": "Gradle",
+      "name": "Pull_deps",
+      "targets": [
+        {
+          "name": "pullDependencies",
+          "dependencies": {
+            "core": {
+              "type": "Artifactory",
+              "server": "${config.artifact_servers.artifactory_default.url}",
+              "repo": "component-latest",
+              "group": "com.xilinx",
+              "component": "core",
+              "version": "${BRANCH}+"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Generate_filelist_Before_Build",
+      "targets": [
+        {
+          "name": "genFileListBefore"
+        }
+      ]
+    },
+    {
+		"type": "Gradle",
+		"name": "Build",
+		"targets": [{
+				"name": "doVitisbuild",
+                                "dependencies": {
+                                        "source": {
+                                                "type": "Perforce",
+                                                "server": "${PERFORCE_XCO.server}",
+                                                "view": [
+                                                "//Rodin/${SWVITIS_GRADLE}/* $(WORKSPACE)/*",
+                                                "+//Rodin/${SWVITIS_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/frank/... $(WORKSPACE)/src/products/frank/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/hsi/... $(WORKSPACE)/src/products/hsi/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/sdk/... $(WORKSPACE)/src/products/sdk/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/sdkide/... $(WORKSPACE)/src/products/sdkide/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/sdx/... $(WORKSPACE)/src/products/sdx/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/vitis/... $(WORKSPACE)/src/products/vitis/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/vitis_hls/... $(WORKSPACE)/src/products/vitis_hls/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/products/xsct/... $(WORKSPACE)/src/products/xsct/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/shared/hls/... $(WORKSPACE)/src/shared/hls/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/shared/microscout/... $(WORKSPACE)/src/shared/microscout/...",
+                                                "${P4_ROOT}/${SW_SOURCE}/src/shared/sdk/... $(WORKSPACE)/src/shared/sdk/..."
+                                                ]
+                                        },
+			        "core": {
+			          "type": "Artifactory",
+			          "server": "${ARTIFACTORY_XCO.server}",
+			          "repo": "component-latest",
+			          "group": "com.xilinx",
+			          "component": "core",
+			          "version": "${BRANCH}+"
+			        }
+			        }
+			}
+		]
+	},
+	{
+      "type": "Gradle",
+      "name": "Generate_filelist_After_Build",
+      "targets": [
+        {
+          "name": "genFileListAfter"
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Publish_Artifact",
+      "switches": "-PsourceVersion=${sourceVersion} -Ddeps=${coreGroup}:${coreComponent}:${coreVersion}",
+      "targets": [
+        {
+          "name": "artifactoryPublish"
+        }
+      ]
+    }
+  ]
+}

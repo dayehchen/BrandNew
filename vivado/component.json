@@ -1,0 +1,198 @@
+{
+	"enabled": "True",
+	"name": "sw/${BRANCH}/vivado",
+	"macros": {
+		"P4_ROOT": "//Rodin",
+		"SWBASE_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw/vivado",
+		"SW_SOURCE": "HEAD",
+		"BRANCH": "2020.1"
+	},
+	"actions": [{
+			"type": "Workspace",
+			"name": "Sync_Workspace",
+			"targets": [{
+				"name": "sync",
+				"mandatory": "True",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+					        "${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+					        "+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/board/... $(WORKSPACE)/src/components/features/board/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/core/... $(WORKSPACE)/src/components/features/core/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ipservices/... $(WORKSPACE)/src/components/features/ipservices/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/labtools/... $(WORKSPACE)/src/components/features/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ndpa/... $(WORKSPACE)/src/components/features/ndpa/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/simulator/... $(WORKSPACE)/src/components/features/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/sysgen/... $(WORKSPACE)/src/components/features/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/systembuilder/... $(WORKSPACE)/src/components/features/systembuilder/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/vivado/... $(WORKSPACE)/src/components/features/vivado/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/writecfgmem/... $(WORKSPACE)/src/components/features/writecfgmem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/xhub/... $(WORKSPACE)/src/components/features/xhub/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/hls/... $(WORKSPACE)/src/products/hls/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/labtools/... $(WORKSPACE)/src/products/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/planAhead/... $(WORKSPACE)/src/products/planAhead/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/simmodels/... $(WORKSPACE)/src/products/simmodels/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/simulator/... $(WORKSPACE)/src/products/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/synthesis/... $(WORKSPACE)/src/products/synthesis/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/sysgen/... $(WORKSPACE)/src/products/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vcseserver/... $(WORKSPACE)/src/products/vcseserver/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vivado/... $(WORKSPACE)/src/products/vivado/..."
+						]
+					}
+				}
+			}]
+		},
+{
+      "type": "Gradle",
+      "name": "Pull_deps",
+      "switches": "-PsourceVersion=${sourceVersion} -PallowedThreads=15 -PnoP4Sync=1",
+      "targets": [
+        {
+          "name": "pullDependencies",
+          "dependencies": {
+            "core": {
+              "type": "Artifactory",
+              "server": "${config.artifact_servers.artifactory_default.url}",
+              "repo": "component-latest",
+              "group": "com.xilinx",
+              "component": "core",
+              "version": "${BRANCH}+"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Generate_filelist_Before_Build",
+      "targets": [
+        {
+          "name": "genFileListBefore"
+        }
+      ]
+    },
+	{
+		"type": "Gradle",
+		"name": "Build",
+		"targets": [{
+				"name": "doVivadobuild",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+					    	"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+					    	"+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/board/... $(WORKSPACE)/src/components/features/board/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/core/... $(WORKSPACE)/src/components/features/core/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ipservices/... $(WORKSPACE)/src/components/features/ipservices/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/labtools/... $(WORKSPACE)/src/components/features/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ndpa/... $(WORKSPACE)/src/components/features/ndpa/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/simulator/... $(WORKSPACE)/src/components/features/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/sysgen/... $(WORKSPACE)/src/components/features/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/systembuilder/... $(WORKSPACE)/src/components/features/systembuilder/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/vivado/... $(WORKSPACE)/src/components/features/vivado/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/writecfgmem/... $(WORKSPACE)/src/components/features/writecfgmem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/xhub/... $(WORKSPACE)/src/components/features/xhub/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/hls/... $(WORKSPACE)/src/products/hls/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/labtools/... $(WORKSPACE)/src/products/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/planAhead/... $(WORKSPACE)/src/products/planAhead/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/simmodels/... $(WORKSPACE)/src/products/simmodels/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/simulator/... $(WORKSPACE)/src/products/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/synthesis/... $(WORKSPACE)/src/products/synthesis/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/sysgen/... $(WORKSPACE)/src/products/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vcseserver/... $(WORKSPACE)/src/products/vcseserver/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vivado/... $(WORKSPACE)/src/products/vivado/..."
+        				]
+					},
+			        "core": {
+			          "type": "Artifactory",
+			          "server": "${ARTIFACTORY_XCO.server}",
+			          "repo": "component-latest",
+			          "group": "com.xilinx",
+			          "component": "core",
+			          "version": "${BRANCH}+"
+			        }
+				}
+			}
+		]
+	},
+	{
+		"type": "Gradle",
+		"name": "Run_regressions",
+		"targets": [{
+				"name": "runVivadoregressions",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+					    	"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+					    	"+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/board/... $(WORKSPACE)/src/components/features/board/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/core/... $(WORKSPACE)/src/components/features/core/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ipservices/... $(WORKSPACE)/src/components/features/ipservices/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/labtools/... $(WORKSPACE)/src/components/features/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ndpa/... $(WORKSPACE)/src/components/features/ndpa/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/simulator/... $(WORKSPACE)/src/components/features/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/sysgen/... $(WORKSPACE)/src/components/features/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/systembuilder/... $(WORKSPACE)/src/components/features/systembuilder/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/vivado/... $(WORKSPACE)/src/components/features/vivado/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/writecfgmem/... $(WORKSPACE)/src/components/features/writecfgmem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/xhub/... $(WORKSPACE)/src/components/features/xhub/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/hls/... $(WORKSPACE)/src/products/hls/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/labtools/... $(WORKSPACE)/src/products/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/planAhead/... $(WORKSPACE)/src/products/planAhead/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/simmodels/... $(WORKSPACE)/src/products/simmodels/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/simulator/... $(WORKSPACE)/src/products/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/synthesis/... $(WORKSPACE)/src/products/synthesis/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/sysgen/... $(WORKSPACE)/src/products/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vcseserver/... $(WORKSPACE)/src/products/vcseserver/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vivado/... $(WORKSPACE)/src/products/vivado/..."
+        				]
+					},
+			        "core": {
+			          "type": "Artifactory",
+			          "server": "${ARTIFACTORY_XCO.server}",
+			          "repo": "component-latest",
+			          "group": "com.xilinx",
+			          "component": "core",
+			          "version": "${BRANCH}+"
+			        }
+				}
+			}
+		]
+	},
+	{
+      "type": "Gradle",
+      "name": "Generate_filelist_After_Build",
+      "targets": [
+        {
+          "name": "genFileListAfter"
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Publish_Artifact",
+      "switches": "-PsourceVersion=${sourceVersion} -Prevision=release -Ddeps=${coreGroup}:${coreComponent}:${coreVersion}",
+      "targets": [
+        {
+          "name": "artifactoryPublish"
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Copy_files_to_nfs",
+      "targets": [
+        {
+          "name": "copyFiles"
+        }
+      ]
+    }
+  ]
+}

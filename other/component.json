@@ -1,0 +1,162 @@
+{
+	"enabled": "True",
+	"name": "sw/${BRANCH}/other",
+	"macros": {
+		"P4_ROOT": "//Rodin",
+		"SWBASE_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw/other",
+		"SW_SOURCE": "HEAD",
+		"BRANCH": "2020.1"
+	},
+	"actions": [{
+			"type": "Workspace",
+			"name": "Sync_Workspace",
+			"targets": [{
+				"name": "sync",
+				"mandatory": "True",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+                    		 "${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+                             "+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/cardano/... $(WORKSPACE)/src/products/cardano/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/fourier/... $(WORKSPACE)/src/products/fourier/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/g2/... $(WORKSPACE)/src/products/g2/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/sdnet/... $(WORKSPACE)/src/products/sdnet/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/vorpal/... $(WORKSPACE)/src/products/vorpal/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/vorplex/... $(WORKSPACE)/src/products/vorplex/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/shared/newsatroute/... $(WORKSPACE)/src/shared/newsatroute/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/shared/satroute/... $(WORKSPACE)/src/shared/satroute/..."
+						]
+					}
+				}
+			}]
+		},
+	{
+      "type": "Gradle",
+      "name": "Pull_deps",
+      "switches": "-PsourceVersion=${sourceVersion} -PallowedThreads=15 -PnoDataSync=1 -PnoRegressionSync=1 -Prevision=release",
+      "targets": [
+        {
+          "name": "pullDependencies",
+          "dependencies": {
+            "vivado": {
+              "type": "Artifactory",
+              "server": "${config.artifact_servers.artifactory_default.url}",
+              "repo": "component-latest",
+              "group": "com.xilinx",
+              "component": "vivado",
+              "version": "${BRANCH}+"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Generate_filelist_Before_Build",
+      "targets": [
+        {
+          "name": "genFileListBefore"
+        }
+      ]
+    },
+	{
+		"type": "Gradle",
+		"name": "Build",
+		"targets": [{
+				"name": "doOtherBuild",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+                    		"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+                            "+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+                            "${P4_ROOT}/${SW_SOURCE}/src/products/cardano/... $(WORKSPACE)/src/products/cardano/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/fourier/... $(WORKSPACE)/src/products/fourier/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/g2/... $(WORKSPACE)/src/products/g2/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/sdnet/... $(WORKSPACE)/src/products/sdnet/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/vorpal/... $(WORKSPACE)/src/products/vorpal/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/vorplex/... $(WORKSPACE)/src/products/vorplex/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/shared/newsatroute/... $(WORKSPACE)/src/shared/newsatroute/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/shared/satroute/... $(WORKSPACE)/src/shared/satroute/..."
+        				]
+					},
+			        "vivado": {
+			          "type": "Artifactory",
+			          "server": "${ARTIFACTORY_XCO.server}",
+			          "repo": "component-latest",
+			          "group": "com.xilinx",
+			          "component": "vivado",
+			          "version": "${BRANCH}+"
+			        }
+				}
+			}
+		]
+	},
+	{
+		"type": "Gradle",
+		"name": "Run_regressions",
+		"targets": [{
+				"name": "runOtherregressions",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+                    		"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+                            "+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+                            "${P4_ROOT}/${SW_SOURCE}/src/products/cardano/... $(WORKSPACE)/src/products/cardano/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/fourier/... $(WORKSPACE)/src/products/fourier/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/g2/... $(WORKSPACE)/src/products/g2/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/sdnet/... $(WORKSPACE)/src/products/sdnet/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/vorpal/... $(WORKSPACE)/src/products/vorpal/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/products/vorplex/... $(WORKSPACE)/src/products/vorplex/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/shared/newsatroute/... $(WORKSPACE)/src/shared/newsatroute/...",
+                             "${P4_ROOT}/${SW_SOURCE}/src/shared/satroute/... $(WORKSPACE)/src/shared/satroute/..."
+        				]
+					},
+			        "vivado": {
+			          "type": "Artifactory",
+			          "server": "${ARTIFACTORY_XCO.server}",
+			          "repo": "component-latest",
+			          "group": "com.xilinx",
+			          "component": "vivado",
+			          "version": "${BRANCH}+"
+			        }
+				}
+			}
+		]
+	},
+	{
+      "type": "Gradle",
+      "name": "Generate_filelist_After_Build",
+      "targets": [
+        {
+          "name": "genFileListAfter"
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Publish_Artifact",
+      "switches": "-PsourceVersion=${sourceVersion} -Prevision=release -Ddeps=${vivadoGroup}:${vivadoComponent}:${vivadoVersion}",
+      "targets": [
+        {
+          "name": "artifactoryPublish"
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Copy_files_to_nfs",
+      "targets": [
+        {
+          "name": "copyFiles"
+        }
+      ]
+    }
+  ]
+}

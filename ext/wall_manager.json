@@ -1,0 +1,40 @@
+{
+  "system": {
+    "scheduler": {
+      "type": "Jenkins",
+      "server": "${config.ci_servers.jenkins_default.url}",
+      "credentials": "/wrk/xcohdnobkup4/abalasa/base_component/COMPONENT_PIPELINE_DEV/jenkinscreds"
+    },
+    "services": {
+      "include": [
+        "../../../infra/xsa-plugin/src/main/resources/config/global.${environmentType}.json"
+      ],
+      "PERFORCE_XCO": {
+        "server": "perforce:1666"
+      },
+      "ARTIFACTORY_XCO": {
+        "server": "http://xsjengvm210121:8081/artifactory"
+      },      
+      "BRANCH": "HEAD",
+      "RELEASE": "2020.1",
+      "SW_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw/ext"
+    },
+    "logs": {
+      "type": "StdOutHandler",
+      "level": "INFO"
+    },
+    "workspace": "/proj/rdi/staff/abalasa/nobkup/wall_manager_ext",
+    "baseclass": "BatchedConcurrent"
+  },
+  "components": [
+    {
+      "source": {
+        "type": "Perforce",
+        "server": "${PERFORCE_XCO.server}",
+        "view": [
+          "//Rodin/${SW_GRADLE}/component.json $(WORKSPACE)/component.json"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+	"enabled": "True",
+	"name": "sw/${BRANCH}/ext",
+	"macros": {
+		"P4_ROOT": "//Rodin",
+		"SWBASE_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw/ext",
+		"SW_SOURCE": "HEAD",
+        "BRANCH": "2020.1"
+	},
+	"actions": [{
+			"type": "Workspace",
+			"name": "Sync_Workspace",
+			"targets": [{
+				"name": "sync",
+				"mandatory": "True",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+							"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+							"+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+							"${P4_ROOT}/${SW_SOURCE}/src/ext/... $(WORKSPACE)/src/ext/..."
+						]
+					}
+				}
+			}]
+		},
+{
+      "type": "Gradle",
+      "name": "Pull_Dependencies",
+      "switches": "-PsourceVersion=${sourceVersion} -PallowedThreads=15 -PnoDataSync=1 -PnoRegressionSync=1 -Prevision=release",
+      "targets": [
+        {
+          "name": "pullDependencies",
+          "dependencies": {
+            "base": {
+              "type": "Artifactory",
+              "server": "${config.artifact_servers.artifactory_default.url}",
+              "repo": "component-latest",
+              "group": "com.xilinx",
+              "component": "base",
+              "version": "${BRANCH}+"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Generate_filelist_Before_Build",
+      "targets": [
+        {
+          "name": "genFileListBefore"
+        }
+      ]
+    },
+	{
+		"type": "Gradle",
+		"name": "Build",
+		"targets": [{
+				"name": "doBuild",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+							"${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+							"${P4_ROOT}/${SW_SOURCE}/.rdi.cfg $(WORKSPACE)/.rdi.cfg",
+							"${P4_ROOT}/${SW_SOURCE}/src/ext/... $(WORKSPACE)/src/ext/..."
+						]
+					},
+			        "base": {
+			          "type": "Artifactory",
+			          "server": "${ARTIFACTORY_XCO.server}",
+			          "repo": "component-latest",
+			          "group": "com.xilinx",
+			          "component": "base",
+			          "version": "${BRANCH}+"
+			        }
+				}
+			}]
+		},
+		{
+	      "type": "Gradle",
+	      "name": "Generate_filelist_After_Build",
+	      "targets": [
+	        {
+	          "name": "genFileListAfter"
+	        }
+	      ]
+	    },
+	    {
+	      "type": "Gradle",
+	      "name": "Publish_Artifact",
+          "switches": "-PsourceVersion=${sourceVersion} -Prevision=release -Ddeps=${baseGroup}:${baseComponent}:${baseVersion}",
+	      "targets": [
+	        {
+	          "name": "artifactoryPublish"
+	        }
+	      ]
+	    },
+	    {
+	      "type": "Gradle",
+	      "name": "Copy_files_to_nfs",
+	      "targets": [
+	        {
+	          "name": "copyFiles"
+	        }
+	      ]
+	    }
+	]
+}

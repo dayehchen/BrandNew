@@ -1,0 +1,37 @@
+{
+  "system": {
+    "scheduler": {
+      "type": "Jenkins",
+      "server": "http://xsjdayeh41x:8080",
+      "credentials": "/home/dayeh/Documents/wall_manager_files/dayehjenkcreds"
+    },
+    "services": {
+      "include": [
+        "/home/dayeh/Documents/wall_manager_files/global.development.json"
+      ],
+      "PERFORCE_XCO": {
+        "server": "perforce:1666"
+      },
+      "BRANCH": "HEAD",
+      "RELEASE": "2020.1",
+      "SW_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw"
+    },
+    "logs": {
+      "type": "StdOutHandler",
+      "level": "INFO"
+    },
+    "workspace": "/proj/rdi/staff/dayeh/workspaces/wall_manager_base",
+    "baseclass": "BatchedConcurrent"
+  },
+  "components": [
+    {
+      "source": {
+        "type": "Perforce",
+        "server": "${PERFORCE_XCO.server}",
+        "view": [
+          "//Rodin/${SW_GRADLE}/.../component.json $(WORKSPACE)/.../component.json"
+        ]
+      }
+    }
+  ]
+}

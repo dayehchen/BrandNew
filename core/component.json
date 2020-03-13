@@ -1,0 +1,300 @@
+{
+	"enabled": "True",
+	"name": "sw/${BRANCH}/core",
+	"macros": {
+		"P4_ROOT": "//Rodin",
+		"SWBASE_GRADLE": "Proj/C/COMPONENT_PIPELINE_DEV/src/sw/core",
+		"SW_SOURCE": "HEAD",
+		"BRANCH": "2020.1"
+	},
+	"actions": [{
+			"type": "Workspace",
+			"name": "Sync_Workspace",
+			"targets": [{
+				"name": "sync",
+				"mandatory": "True",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+                            "${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+                            "+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+					        "${P4_ROOT}/${SW_SOURCE}/dataCL $(WORKSPACE)/dataCL",
+					        "${P4_ROOT}/${SW_SOURCE}/regressionCL $(WORKSPACE)/regressionCL",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/* $(WORKSPACE)/src/components/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/* $(WORKSPACE)/src/components/features/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/base/... $(WORKSPACE)/src/components/features/base/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/core/... $(WORKSPACE)/src/components/features/core/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/hsi/... $(WORKSPACE)/src/components/features/hsi/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ipservices/... $(WORKSPACE)/src/components/features/ipservices/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/labtools/... $(WORKSPACE)/src/components/features/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ndpa/... $(WORKSPACE)/src/components/features/ndpa/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/scripts/... $(WORKSPACE)/src/components/features/scripts/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/systembuilder/... $(WORKSPACE)/src/components/features/systembuilder/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/tclstore/... $(WORKSPACE)/src/components/features/tclstore/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/updatemem/... $(WORKSPACE)/src/components/features/updatemem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/vivado/... $(WORKSPACE)/src/components/features/vivado/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/writecfgmem/... $(WORKSPACE)/src/components/features/writecfgmem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/xhub/... $(WORKSPACE)/src/components/features/xhub/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/project/... $(WORKSPACE)/src/components/project/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/projectbase/... $(WORKSPACE)/src/components/projectbase/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/tclext/... $(WORKSPACE)/src/components/tclext/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/doc/... $(WORKSPACE)/src/doc/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/misc/... $(WORKSPACE)/src/misc/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/bootgen/... $(WORKSPACE)/src/products/bootgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/hwserver/... $(WORKSPACE)/src/products/hwserver/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/installer/... $(WORKSPACE)/src/products/installer/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/labtools/... $(WORKSPACE)/src/products/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/planAhead/... $(WORKSPACE)/src/products/planAhead/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/updatemem/... $(WORKSPACE)/src/products/updatemem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vlm/... $(WORKSPACE)/src/products/vlm/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/webtalk/... $(WORKSPACE)/src/products/webtalk/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/scripts/... $(WORKSPACE)/src/scripts/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/* $(WORKSPACE)/src/shared/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/bitstream/... $(WORKSPACE)/src/shared/bitstream/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/board/... $(WORKSPACE)/src/shared/board/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/chipscope/... $(WORKSPACE)/src/shared/chipscope/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/* $(WORKSPACE)/src/shared/common/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/common/... $(WORKSPACE)/src/shared/common/common/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/containers/... $(WORKSPACE)/src/shared/common/containers/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/cwebtalk/... $(WORKSPACE)/src/shared/common/cwebtalk/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/main/... $(WORKSPACE)/src/shared/common/main/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/msg/... $(WORKSPACE)/src/shared/common/msg/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/schedmon/... $(WORKSPACE)/src/shared/common/schedmon/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/security/... $(WORKSPACE)/src/shared/common/security/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/services/... $(WORKSPACE)/src/shared/common/services/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/tcltasks/... $(WORKSPACE)/src/shared/common/tcltasks/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/version/... $(WORKSPACE)/src/shared/common/version/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/x11/... $(WORKSPACE)/src/shared/common/x11/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/xhub/... $(WORKSPACE)/src/shared/common/xhub/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/xillic/... $(WORKSPACE)/src/shared/common/xillic/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/xlicdiagnostics/... $(WORKSPACE)/src/shared/common/xlicdiagnostics/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/constraints/... $(WORKSPACE)/src/shared/constraints/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/coregen/... $(WORKSPACE)/src/shared/coregen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/designutils/... $(WORKSPACE)/src/shared/designutils/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/device/... $(WORKSPACE)/src/shared/device/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/dlyest/... $(WORKSPACE)/src/shared/dlyest/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/drc/... $(WORKSPACE)/src/shared/drc/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/dsp/... $(WORKSPACE)/src/shared/dsp/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/fed/... $(WORKSPACE)/src/shared/fed/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/filemgmt/... $(WORKSPACE)/src/shared/filemgmt/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/fit/... $(WORKSPACE)/src/shared/fit/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/guitools/... $(WORKSPACE)/src/shared/guitools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hlsvwrap/* $(WORKSPACE)/src/shared/hlsvwrap/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hlsvwrap/common/... $(WORKSPACE)/src/shared/hlsvwrap/common/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hlsvwrap/vivado/... $(WORKSPACE)/src/shared/hlsvwrap/vivado/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hsm/... $(WORKSPACE)/src/shared/hsm/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/implflow/... $(WORKSPACE)/src/shared/implflow/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ip/... $(WORKSPACE)/src/shared/ip/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ipcommon/... $(WORKSPACE)/src/shared/ipcommon/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ipconfig/... $(WORKSPACE)/src/shared/ipconfig/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/labtools/... $(WORKSPACE)/src/shared/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/memdata/... $(WORKSPACE)/src/shared/memdata/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/mig/... $(WORKSPACE)/src/shared/mig/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/netlist/... $(WORKSPACE)/src/shared/netlist/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/place/... $(WORKSPACE)/src/shared/place/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/platform/... $(WORKSPACE)/src/shared/platform/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/power/... $(WORKSPACE)/src/shared/power/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ptgen/... $(WORKSPACE)/src/shared/ptgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/pwropt/... $(WORKSPACE)/src/shared/pwropt/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/route/... $(WORKSPACE)/src/shared/route/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/rsb/... $(WORKSPACE)/src/shared/rsb/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/runs/... $(WORKSPACE)/src/shared/runs/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/simulator/... $(WORKSPACE)/src/shared/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/synth/... $(WORKSPACE)/src/shared/synth/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/sysgen/... $(WORKSPACE)/src/shared/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/timing/... $(WORKSPACE)/src/shared/timing/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ui/... $(WORKSPACE)/src/shared/ui/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/wavedata/... $(WORKSPACE)/src/shared/wavedata/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/* $(WORKSPACE)/src/shared/xicom/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/TcfTclPlugin/... $(WORKSPACE)/src/shared/xicom/TcfTclPlugin/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/legacy_client/... $(WORKSPACE)/src/shared/xicom/legacy_client/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/msg/... $(WORKSPACE)/src/shared/xicom/msg/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/service_client_interface/... $(WORKSPACE)/src/shared/xicom/service_client_interface/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/xicom_hw/... $(WORKSPACE)/src/shared/xicom/xicom_hw/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xpp/... $(WORKSPACE)/src/shared/xpp/..."
+						]
+					}
+				}
+			}]
+		},
+    {
+      "type": "Gradle",
+      "name": "Pull_Dependencies",
+      "switches": "-PsourceVersion=${sourceVersion} -PallowedThreads=15 -PnoDataSync=1 -PnoRegressionSync=1 -Prevision=release",
+      "targets": [
+        {
+          "name": "pullDependencies",
+          "dependencies": {
+            "ext": {
+              "type": "Artifactory",
+              "server": "${config.artifact_servers.artifactory_default.url}",
+              "repo": "component-latest",
+              "group": "com.xilinx",
+              "component": "ext",
+              "version": "${BRANCH}+"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Generate_filelist_Before_Build",
+      "targets": [
+        {
+          "name": "genFileListBefore"
+        }
+      ]
+    },
+	{
+		"type": "Gradle",
+		"name": "Build",
+		"targets": [{
+				"name": "doBuild",
+				"dependencies": {
+					"source": {
+						"type": "Perforce",
+						"server": "${PERFORCE_XCO.server}",
+						"view": [
+                            "${P4_ROOT}/${SWBASE_GRADLE}/* $(WORKSPACE)/*",
+                            "+${P4_ROOT}/${SWBASE_GRADLE}/gradle/... $(WORKSPACE)/gradle/...",
+					        "${P4_ROOT}/${SW_SOURCE}/dataCL $(WORKSPACE)/dataCL",
+					        "${P4_ROOT}/${SW_SOURCE}/regressionCL $(WORKSPACE)/regressionCL",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/* $(WORKSPACE)/src/components/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/* $(WORKSPACE)/src/components/features/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/base/... $(WORKSPACE)/src/components/features/base/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/core/... $(WORKSPACE)/src/components/features/core/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/hsi/... $(WORKSPACE)/src/components/features/hsi/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ipservices/... $(WORKSPACE)/src/components/features/ipservices/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/labtools/... $(WORKSPACE)/src/components/features/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/ndpa/... $(WORKSPACE)/src/components/features/ndpa/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/scripts/... $(WORKSPACE)/src/components/features/scripts/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/systembuilder/... $(WORKSPACE)/src/components/features/systembuilder/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/tclstore/... $(WORKSPACE)/src/components/features/tclstore/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/updatemem/... $(WORKSPACE)/src/components/features/updatemem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/vivado/... $(WORKSPACE)/src/components/features/vivado/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/writecfgmem/... $(WORKSPACE)/src/components/features/writecfgmem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/features/xhub/... $(WORKSPACE)/src/components/features/xhub/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/project/... $(WORKSPACE)/src/components/project/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/projectbase/... $(WORKSPACE)/src/components/projectbase/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/components/tclext/... $(WORKSPACE)/src/components/tclext/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/doc/... $(WORKSPACE)/src/doc/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/misc/... $(WORKSPACE)/src/misc/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/bootgen/... $(WORKSPACE)/src/products/bootgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/hwserver/... $(WORKSPACE)/src/products/hwserver/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/installer/... $(WORKSPACE)/src/products/installer/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/labtools/... $(WORKSPACE)/src/products/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/planAhead/... $(WORKSPACE)/src/products/planAhead/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/updatemem/... $(WORKSPACE)/src/products/updatemem/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/vlm/... $(WORKSPACE)/src/products/vlm/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/products/webtalk/... $(WORKSPACE)/src/products/webtalk/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/scripts/... $(WORKSPACE)/src/scripts/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/* $(WORKSPACE)/src/shared/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/bitstream/... $(WORKSPACE)/src/shared/bitstream/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/board/... $(WORKSPACE)/src/shared/board/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/chipscope/... $(WORKSPACE)/src/shared/chipscope/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/* $(WORKSPACE)/src/shared/common/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/common/... $(WORKSPACE)/src/shared/common/common/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/containers/... $(WORKSPACE)/src/shared/common/containers/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/cwebtalk/... $(WORKSPACE)/src/shared/common/cwebtalk/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/main/... $(WORKSPACE)/src/shared/common/main/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/msg/... $(WORKSPACE)/src/shared/common/msg/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/schedmon/... $(WORKSPACE)/src/shared/common/schedmon/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/security/... $(WORKSPACE)/src/shared/common/security/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/services/... $(WORKSPACE)/src/shared/common/services/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/tcltasks/... $(WORKSPACE)/src/shared/common/tcltasks/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/version/... $(WORKSPACE)/src/shared/common/version/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/x11/... $(WORKSPACE)/src/shared/common/x11/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/xhub/... $(WORKSPACE)/src/shared/common/xhub/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/xillic/... $(WORKSPACE)/src/shared/common/xillic/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/common/xlicdiagnostics/... $(WORKSPACE)/src/shared/common/xlicdiagnostics/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/constraints/... $(WORKSPACE)/src/shared/constraints/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/coregen/... $(WORKSPACE)/src/shared/coregen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/designutils/... $(WORKSPACE)/src/shared/designutils/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/device/... $(WORKSPACE)/src/shared/device/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/dlyest/... $(WORKSPACE)/src/shared/dlyest/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/drc/... $(WORKSPACE)/src/shared/drc/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/dsp/... $(WORKSPACE)/src/shared/dsp/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/fed/... $(WORKSPACE)/src/shared/fed/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/filemgmt/... $(WORKSPACE)/src/shared/filemgmt/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/fit/... $(WORKSPACE)/src/shared/fit/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/guitools/... $(WORKSPACE)/src/shared/guitools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hlsvwrap/* $(WORKSPACE)/src/shared/hlsvwrap/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hlsvwrap/common/... $(WORKSPACE)/src/shared/hlsvwrap/common/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hlsvwrap/vivado/... $(WORKSPACE)/src/shared/hlsvwrap/vivado/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/hsm/... $(WORKSPACE)/src/shared/hsm/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/implflow/... $(WORKSPACE)/src/shared/implflow/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ip/... $(WORKSPACE)/src/shared/ip/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ipcommon/... $(WORKSPACE)/src/shared/ipcommon/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ipconfig/... $(WORKSPACE)/src/shared/ipconfig/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/labtools/... $(WORKSPACE)/src/shared/labtools/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/memdata/... $(WORKSPACE)/src/shared/memdata/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/mig/... $(WORKSPACE)/src/shared/mig/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/netlist/... $(WORKSPACE)/src/shared/netlist/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/place/... $(WORKSPACE)/src/shared/place/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/platform/... $(WORKSPACE)/src/shared/platform/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/power/... $(WORKSPACE)/src/shared/power/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ptgen/... $(WORKSPACE)/src/shared/ptgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/pwropt/... $(WORKSPACE)/src/shared/pwropt/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/route/... $(WORKSPACE)/src/shared/route/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/rsb/... $(WORKSPACE)/src/shared/rsb/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/runs/... $(WORKSPACE)/src/shared/runs/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/simulator/... $(WORKSPACE)/src/shared/simulator/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/synth/... $(WORKSPACE)/src/shared/synth/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/sysgen/... $(WORKSPACE)/src/shared/sysgen/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/timing/... $(WORKSPACE)/src/shared/timing/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/ui/... $(WORKSPACE)/src/shared/ui/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/wavedata/... $(WORKSPACE)/src/shared/wavedata/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/* $(WORKSPACE)/src/shared/xicom/*",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/TcfTclPlugin/... $(WORKSPACE)/src/shared/xicom/TcfTclPlugin/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/legacy_client/... $(WORKSPACE)/src/shared/xicom/legacy_client/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/msg/... $(WORKSPACE)/src/shared/xicom/msg/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/service_client_interface/... $(WORKSPACE)/src/shared/xicom/service_client_interface/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xicom/xicom_hw/... $(WORKSPACE)/src/shared/xicom/xicom_hw/...",
+					        "${P4_ROOT}/${SW_SOURCE}/src/shared/xpp/... $(WORKSPACE)/src/shared/xpp/..."
+						]
+					},
+			        "ext": {
+			          "type": "Artifactory",
+			          "server": "${ARTIFACTORY_XCO.server}",
+			          "repo": "component-latest",
+			          "group": "com.xilinx",
+			          "component": "ext",
+			          "version": "${BRANCH}+"
+			        }
+				}
+			}
+		]
+	},
+	{
+      "type": "Gradle",
+      "name": "Generate_filelist_After_Build",
+      "targets": [
+        {
+          "name": "genFileListAfter"
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Publish_Artifact",
+      "switches": "-PsourceVersion=${sourceVersion} -Prevision=release -Ddeps=${extGroup}:${extComponent}:${extVersion}",
+      "targets": [
+        {
+          "name": "artifactoryPublish"
+        }
+      ]
+    },
+    {
+      "type": "Gradle",
+      "name": "Copy_files_to_nfs",
+      "targets": [
+        {
+          "name": "copyFiles"
+        }
+      ]
+    }
+  ]
+}
